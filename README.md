@@ -18,7 +18,8 @@ OpenRouter, model `openrouter/free`. Environment variables needed: `LLM_BASE_URL
 
 ## Eval Score
 
-Run with `python src/run_eval.py` after starting the server. Latest result:8/8 correct, prompt version v1.
+Run with `python src/run_eval.py` after starting the server. Latest result: 8/8 correct, prompt version v1.
+
 ## Cost
 
 One call uses roughly 150-250 tokens total. At 10,000 requests/day, this is approximately 1.5-2.5 million tokens/day, well within free-tier limits on OpenRouter's free models, though a paid model at scale would need this tracked against a real budget.
