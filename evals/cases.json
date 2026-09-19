@@ -1,0 +1,10 @@
+[
+  {"title": "Buy milk and eggs", "expected_category": "shopping"},
+  {"title": "Finish quarterly report", "expected_category": "work"},
+  {"title": "Doctor appointment at 3pm", "expected_category": "health"},
+  {"title": "Call mom", "expected_category": "personal"},
+  {"title": "asdkjasdkjasd", "expected_category": "other"},
+  {"title": "Pick up dry cleaning", "expected_category": "personal"},
+  {"title": "Team standup meeting", "expected_category": "work"},
+  {"title": "Take vitamins", "expected_category": "health"}
+]

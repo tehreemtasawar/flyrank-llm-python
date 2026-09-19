@@ -100,10 +100,38 @@ def quarantine(title, error, prompt_version="v1"):
 @app.post("/classify")
 def classify(req: ClassifyRequest):
     if os.environ.get("LLM_ENABLED") == "false":
-        return JSONResponse(status_code=503, content={"error": "LLM feature is currently disabled"})
+        return JSONResponse(
+            status_code=503,
+            content={"error": "LLM feature is currently disabled"}
+        )
 
     if os.environ.get("LLM_STUB") == "1":
-        return ClassifyResponse(category=Category.other, confidence=0.5, reason="Stub response").model_dump()
+        return ClassifyResponse(
+            category=Category.other,
+            confidence=0.5,
+            reason="Stub response"
+        ).model_dump()
 
     raw = call_model_with_message(req.title)
-    ...
+
+    try:
+        data = extract_json(raw)
+        result = ClassifyResponse(**data)
+        return result.model_dump()
+
+    except (ValueError, ValidationError) as e:
+        try:
+            raw = call_model_with_message(
+                req.title,
+                "Return only valid JSON matching the required schema."
+            )
+            data = extract_json(raw)
+            result = ClassifyResponse(**data)
+            return result.model_dump()
+
+        except Exception as repair_error:
+            quarantine(req.title, repair_error)
+            return JSONResponse(
+                status_code=502,
+                content={"error": "Could not classify task"}
+            )
