@@ -36,8 +36,10 @@ class ClassifyResponse(BaseModel):
 
 def extract_json(text: str) -> dict:
     match = re.search(r"\{.*\}", text, re.DOTALL)
+
     if not match:
         raise ValueError("No JSON object found in model output")
+
     return json.loads(match.group())
 
 
@@ -139,21 +141,27 @@ def classify(req: ClassifyRequest):
         result = ClassifyResponse(**data)
         return result.model_dump()
 
-    except (ValueError, ValidationError):
+    except (ValueError, ValidationError, json.JSONDecodeError) as e:
+
+        repair_msg = (
+            f"Your previous answer was rejected for this reason: {e}. "
+            "Return only corrected JSON matching the schema."
+        )
+
+        raw2 = call_model_with_message(
+            req.title,
+            extra_message=repair_msg
+        )
+
         try:
-            raw = call_model_with_message(
-                req.title,
-                "Return only valid JSON matching the required schema."
-            )
+            data2 = extract_json(raw2)
+            result2 = ClassifyResponse(**data2)
+            return result2.model_dump()
 
-            data = extract_json(raw)
-            result = ClassifyResponse(**data)
-            return result.model_dump()
-
-        except Exception as repair_error:
-            quarantine(req.title, repair_error)
+        except (ValueError, ValidationError, json.JSONDecodeError) as e2:
+            quarantine(req.title, e2)
 
             return JSONResponse(
-                status_code=502,
-                content={"error": "Could not classify task"}
+                status_code=422,
+                content={"error": "Could not get a valid classification"}
             )
